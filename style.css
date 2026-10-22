@@ -434,6 +434,12 @@ svg { width: 20px; height: 20px; flex: none; }
 .login-card { width: 100%; max-width: 380px; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px 24px; box-shadow: var(--shadow); }
 .login-card h1 { margin-bottom: 4px; }
 .gbtn { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 22px 0 14px; min-height: 44px; }
+.or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .85rem; margin: 6px 0 14px; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.code-form { text-align: left; margin-bottom: 10px; }
+.code-form .link { display: block; margin: 8px auto 0; }
+.code-form #code-msg:empty { display: none; }
+.code-form #code-msg { margin-top: 10px; }
 
 /* ---------- Nyomtatás ---------- */
 

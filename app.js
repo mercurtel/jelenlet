@@ -293,7 +293,15 @@
       '<p class="muted">Jelenléti ív és szabadság-nyilvántartás</p>' +
       (msg ? '<p class="error-box">' + esc(msg) + '</p>' : '') +
       '<div id="gbtn" class="gbtn"></div>' +
-      '<p class="muted small">Jelentkezz be azzal a Google-fiókkal, amelyet az ügyvezetésnek megadtál.</p></div></div>';
+      '<div class="or"><span>vagy</span></div>' +
+      '<form id="code-form" class="form code-form" novalidate>' +
+      '<label>E-mail-cím<input type="email" name="email" autocomplete="email" placeholder="nev@ceg.hu" required></label>' +
+      '<label id="code-wrap" hidden>Belépési kód<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 számjegy"></label>' +
+      '<button class="btn primary big" type="submit">Kód kérése e-mailben</button>' +
+      '<button class="link" type="button" id="code-reset" hidden>Új kód kérése</button>' +
+      '<p class="muted small" id="code-msg"></p></form>' +
+      '<p class="muted small">Jelentkezz be Google-fiókkal, vagy kérj belépési kódot arra a címre, amelyet az ügyvezetésnek megadtál.</p></div></div>';
+    bindCodeForm();
     const el = document.getElementById('gbtn');
     if (window.MOCK_LOGIN) return window.MOCK_LOGIN(el, onCredential);
     if (!CFG.CLIENT_ID || !CFG.API_URL) {
@@ -309,6 +317,47 @@
       if (!msg) g.accounts.id.prompt();
     }).catch(() => {
       el.innerHTML = '<p class="error-box">A Google-bejelentkezés nem töltődött be. Ellenőrizd az internetkapcsolatot, majd frissítsd az oldalt.</p>';
+    });
+  }
+
+  /** Belépés e-mailben kapott kóddal: először kódot kér, utána a kóddal belép. */
+  function bindCodeForm() {
+    const f = document.getElementById('code-form');
+    const msg = document.getElementById('code-msg');
+    const btn = f.querySelector('[type=submit]');
+    const reset = document.getElementById('code-reset');
+    let stage = 'email';
+    const setStage = s => {
+      stage = s;
+      f.elements.email.readOnly = s === 'code';
+      document.getElementById('code-wrap').hidden = s !== 'code';
+      reset.hidden = s !== 'code';
+      btn.textContent = s === 'code' ? 'Belépés' : 'Kód kérése e-mailben';
+    };
+    const say = (text, isError) => { msg.textContent = text; msg.className = isError ? 'error-box small' : 'muted small'; };
+    reset.addEventListener('click', () => { setStage('email'); f.elements.code.value = ''; say(''); });
+    f.addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const email = f.elements.email.value.trim();
+      if (!email) return f.elements.email.focus();
+      btn.disabled = true;
+      try {
+        if (stage === 'email') {
+          await api('requestCode', { email: email });
+          setStage('code');
+          f.elements.code.focus();
+          say('Ha a cím szerepel a nyilvántartásban, 1–2 percen belül megérkezik a kód. Nézd meg a levélszemét mappát is.');
+        } else {
+          const data = await api('verifyCode', { email: email, code: f.elements.code.value });
+          S.session = data.session;
+          store(data.session);
+          start(data.bootstrap);
+        }
+      } catch (err) {
+        say(err.message, true);
+      } finally {
+        btn.disabled = false;
+      }
     });
   }
 

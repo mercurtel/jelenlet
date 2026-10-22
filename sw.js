@@ -1,6 +1,6 @@
 // Egyszerű service worker: a felület fájljai offline is betöltődnek,
 // de mindig a hálózatról érkező friss változat az elsődleges. Az API-t nem tárolja.
-const CACHE = 'jelenlet-v1';
+const CACHE = 'jelenlet-v2';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'config.js', 'manifest.webmanifest',
   'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
